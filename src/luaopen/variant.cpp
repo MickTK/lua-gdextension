@@ -41,6 +41,8 @@ using namespace godot;
 
 namespace luagdextension {
 
+#define LUA_PROPERTY_LIST_NAME "_lua_property_list"
+
 template<Variant::Operator VarOperator>
 sol::object evaluate_binary_operator(sol::this_state state, const sol::stack_object& a, const sol::stack_object& b) {
 	bool is_valid;
@@ -82,6 +84,19 @@ sol::object evaluate_unary_operator(sol::this_state state, const sol::stack_obje
 
 sol::object variant__index(sol::this_state state, const Variant& variant, const sol::stack_object& key) {
 	bool is_valid;
+
+	if(variant.has_method(LUA_PROPERTY_LIST_NAME)) {
+		Variant mutable_variant = variant;
+		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
+		if (mutable_variant.get_type() == godot::Variant::ARRAY) {
+			Array whitelist = mutable_variant;
+			if(!whitelist.has(to_variant(key))) return to_lua(state, Variant());
+		}
+		else {
+			return to_lua(state, Variant());
+		}
+	}
+
 	if (key.get_type() == sol::type::string) {
 		StringName string_name = key.as<StringName>();
 		if (Variant::has_member(variant.get_type(), string_name)) {
@@ -99,7 +114,21 @@ sol::object variant__index(sol::this_state state, const Variant& variant, const 
 void variant__newindex(sol::this_state state, Variant& variant, const sol::stack_object& key, const sol::stack_object& value) {
 	bool is_valid;
 	Variant var_key = to_variant(key);
+
+	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
+		Variant mutable_variant = variant;
+		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
+		if (mutable_variant.get_type() == godot::Variant::ARRAY) {
+			Array whitelist = mutable_variant;
+			if(!whitelist.has(var_key)) return;
+		}
+		else {
+			return;
+		}
+	}
+
 	Variant var_value = to_variant(value);
+
 	variant.set(var_key, var_value, &is_valid);
 	if (!is_valid) {
 		CharString key_str = var_key.stringify().utf8();
