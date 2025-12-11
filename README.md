@@ -1,239 +1,77 @@
-# Lua GDExtension
-[![Godot Asset Library page](https://img.shields.io/static/v1?logo=godotengine&label=asset%20library%20%28Lua%205.4%29&color=478CBF&message=0.6.0)](https://godotengine.org/asset-library/asset/2330)
-[![Godot Asset Library page](https://img.shields.io/static/v1?logo=godotengine&label=asset%20library%20%28LuaJIT%29&color=478CBF&message=0.6.0)](https://godotengine.org/asset-library/asset/2330)
-[![Build and Test workflow](https://github.com/gilzoide/lua-gdextension/actions/workflows/build.yml/badge.svg)](https://github.com/gilzoide/lua-gdextension/actions/workflows/build.yml)
+![Godot version](https://badgen.net/badge/Godot/4.5.1/blue)
+[![Build and Test workflow](https://github.com/MickTK/lua-gdextension/actions/workflows/build.yml/badge.svg)](https://github.com/MickTK/lua-gdextension/actions/workflows/build.yml)
 
-<img src="addons/lua-gdextension/icon.png" alt="Lua GDExtension icon" width="150" height="150"/>
+# Lua GDExtension Sandbox
+This project is a fork of [lua-gdextension](https://github.com/gilzoide/lua-gdextension) focused on providing an improved and safer sandboxed Lua environment.
 
-Extension for using the [Lua programming language](https://www.lua.org/) in Godot 4.4+
+Currently, the extension still contains several legacy features from the original project, including the option to use Lua instead of GDScript, but these will be removed in future releases.
 
-With this addon, you can program your game or application directly in Lua.
-You can also create sandboxed Lua states for external modding/scripting support, as many as necessary.
+# Getting started
 
-This plugin is available in the Asset Library as:
-- [Lua GDExtension](https://godotengine.org/asset-library/asset/2330) (Lua 5.4 version)
-- [Lua GDExtension + LuaJIT](https://godotengine.org/asset-library/asset/4119) (LuaJIT version)
+## Expose a GDScript class in Lua
+Any Variant can be exposed (also the built-ins classes) with the properties hidden by default.
 
+To expose the properties, the class shall implement a **static function** named **_lua_property_list**.
 
-## Features
-- Create Godot scripts directly in Lua, making it possible to use Lua as an alternative to GDScript or C#
-- Create additional Lua states for external modding/scripting support, as many as necessary
-- Manage Lua tables, functions and coroutines directly from GDScript, C# or any other scripting language in Godot
-- Select which Lua libraries and Godot APIs will be available per Lua state, making sandboxing easier:
-  + Lua libraries are the same as Lua/C, like `base`, `package` and `io` libraries
-  + Godot APIs:
-    + Create and manipulate Variant values
-    + Instantiate objects and access class constants
-    + Access singleton objects by name
-    + Global utility functions, like Godot's `print_rich`, `lerp` and `is_same`.
-      Also adds an `await` function that mimics GDScript's `await` keyword (only supported when running in a coroutine).
-    + Global enums, like `OK`, `TYPE_STRING` and `SIDE_LEFT`
-    + Patch Lua `package.searchers`, `require`, `loadfile` and `dofile` to accept paths relative to `res://` and `user://`
-- Editor plugin with Lua REPL for testing out Lua snippets
-- Choose between Lua 5.4 or LuaJIT v2.1 runtimes (distributed as separate addons)
-  + Note: LuaJIT does not support WebAssebly, so Lua 5.4 is always used in Web platform
-
-
-## Lua scripting in Godot
-This addon registers a [ScriptLanguageExtension](https://docs.godotengine.org/en/stable/classes/class_scriptlanguageextension.html) so that Godot objects can be scripted directly in Lua.
-
-For Lua scripts to be usable in Nodes and Resources, they must return a table with the script metadata containing methods, properties, signals, etc...
-```lua
--- This is our script metadata table.
---
--- It stores metadata such as its base class, global class_name, icon,
--- as well as any declared properties, methods and signals
-local LuaBouncingLogo = {
-	-- base class (optional, defaults to RefCounted)
-	extends = Sprite2D,
-	-- if true, allow the script to be executed by the editor (optional)
-	tool = false,
-	-- global class name (optional)
-	class_name = "LuaBouncingLogo",
-	
-	-- Declare properties
-	linear_velocity = export(100),
-	initial_angle = export({
-		type = float,
-		default = 0,
-		hint = PROPERTY_HINT_RANGE,
-		hint_string = "0,360,degrees"
-	}),
-	-- Declare signals
-	bounced = signal(),
-}
-
--- Called when the node enters the scene tree for the first time.
-function LuaBouncingLogo:_ready()
-	self.position = self:get_viewport():get_size() / 2
-	self.movement = Vector2(self.linear_velocity, 0):rotated(deg_to_rad(self.initial_angle))
-
-	-- To connect a signal in Lua, you can use the method name just like in GDScript
-	self.bounced:connect(self._on_bounced)
-end
-
--- Called every frame. 'delta' is the elapsed time since the previous frame.
-function LuaBouncingLogo:_process(delta)
-	local viewport_size = self:get_viewport():get_size()
-	local viewport_rect = Rect2(Vector2(), viewport_size)
-	if not viewport_rect:encloses(self.global_transform * self:get_rect()) then
-		self.movement = self.movement:rotated(deg_to_rad(90))
-		self.bounced:emit()
-	end
-	self.position = self.position + self.movement * delta
-end
-
-function LuaBouncingLogo:_on_bounced()
-	print("Bounced =D")
-end
-
--- Return the metadata table for the script to be usable by Godot objects
-return LuaBouncingLogo
-```
-
-
-## Calling Lua from Godot
-The following classes are registered in Godot for creating Lua states and interacting with them: `LuaState`, `LuaTable`, `LuaUserdata`, `LuaLightUserdata`, `LuaFunction`, `LuaCoroutine`, `LuaThread`, `LuaDebug` and `LuaError`.
-
-Usage example in GDScript:
 ```gdscript
-# 1. Create a Lua state
-var lua = LuaState.new()
-# 2. Import Lua and Godot APIs into the state
-#    Optionally pass which libraries should be opened to the method
-lua.open_libraries()
+# GDScript exposed class example
+class_name MyClass
 
-# 3. Run Lua code using `LuaState.do_string` or `LuaState.do_file`
-var result = lua.do_string("""
-  local vector = Vector2(1, 2)
-  return {
-    this_is_a_table = true,
-    vector = vector,
-  }
-""")
-# 4. Access results from Lua code directly in Godot
-#    When errors occur, instances of `LuaError` will be returned
-if result is LuaError:
-    printerr("Error in Lua code: ", result)
-else:
-    print(result)  # [LuaTable:0x556069ee50ab]
-    print(result["this_is_a_table"])  # true
-    print(result["vector"])  # (1, 2)
-    print(result["invalid key"])  # <null>
+static func _lua_property_list() -> Array[StringName]:
+  return [
+    "new", # exposes the constructor
+    "my_value",
+    "hello"
+  ]
 
-# 5. Access the global _G table via `LuaState.globals` property
-assert(lua.globals is LuaTable)
-lua.globals["a_godot_callable"] = func(): print("Hello from GDScript!")
-lua.do_string("""
-    a_godot_callable()  -- 'Hello from GDScript!'
-""")
+var _secret = "ciao"
+var my_value = 123
+func _foo() -> void: print("nope")
+func hello() -> void: print("Hello")
 ```
 
+```gdscript
+# Initialize and run a sandbox environment
 
-## Calling Godot from Lua
-- Instantiate and manipulate Godot objects, just like in GDScript.
-  ```lua
-  local v = Vector3(1, 2, 3)
-  print(v.x)  -- 1
-  -- Note: use ":" instead of "." to call methods in Lua
-  print(v:length())  -- 3.74165749549866
+var lua := LuaState.new()
+var lua_script: String = ... # see the example below
 
-  local n = Node:new()
-  print(n:is_inside_tree())  -- false
-  n:queue_free()
-  ```
-- Typed Arrays and Dictionaries are also supported
-  ```lua
-  -- Element type: int
-  local int_array = Array[int]()
-  -- Element type: Node
-  local node_array = Array[Node]()
-  
-  -- Key: int, Value: bool
-  local int_to_bool_dict = Dictionary[int][bool]()
-  -- Key: Variant, Value: Node
-  local node_valued_dict = Dictionary[Variant][Node]()
-  ```
-- Call Godot utility functions.
-  ```lua
-  local d1 = Dictionary()
-  local d2 = Dictionary()
-  print(is_same(d1, d2))  -- false
-  print(is_same(d2, d2))  -- true
+func _ready() -> void:
+  lua.open_libraries(LuaState.GODOT_VARIANT) # required for any variant
+  lua.globals.clear() # removes built-in classes from the scope
+  lua.globals.print = func(msg: Variant) -> void: print(str(msg))
+  lua.globals.MyClass = MyClass
 
-  print(lerp(5, 10, 0.15))  -- 5.75
-  ```
-- Access singleton objects by name.
-  ```lua
-  assert(OS == Engine:get_singleton("OS"))
-  ```
-- Construct Array/Dictionary using Lua tables.
-  ```lua
-  local array = Array{ "value 0", "value 1" }
-  -- Godot Arrays are indexed from 0, instead of 1
-  print(array[0])  -- "value 0"
-  print(array[1])  -- "value 1"
-  print(array[2])  -- nil
+  var result = lua.do_string(lua_script)
+  if result is LuaError:
+    printerr("Error in Lua code: ", result)
+  else:
+    print(result) # 0
+```
 
-  local dict = Dictionary{ hello = "world" }
-  print(dict)  -- { "hello": "world" }
-  print(dict["hello"])  -- "world"
-  print(dict["invalid key"])  -- nil
-  ```
-- Iterate over values using `pairs` for types that support it, like Arrays, packed arrays, Dictionaries and some math types.
-  ```lua
-  local dictionary = Dictionary{ hello = "world", key = "value" }
-  for key, value in pairs(dictionary) do
-      print(key .. ": " .. value)
-  end
-  ```
-- Length operator (`#`) as a shortcut for calling the `size()` method in any object that supports it.
-  ```lua
-  local array = Array{ 1, 2, 3, 4 }
-  print(#array)  -- 4
-  ```
-- Runtime type check using the `Variant.is` method.
-  ```lua
-  local array = Array()
-  print(Variant.is(array, Array))  -- true
-  print(Variant.is(array, 'Array'))  -- true
-  -- Also available using the method notation from Variant objects
-  print(array:is(Array))  -- true
-  print(array:is(Dictionary))  -- false
-  print(array:is(RefCounted))  -- false
-  ```
-- Making protected calls using `pcall`.
-  ```lua
-  local v = Vector2(1, 2)
-  print(v:pcall('length'))  -- true    2.2360680103302
-  print(v:pcall('invalid method'))  -- false   "Invalid method"
-  ```
+```lua
+-- Lua script example
 
+local my_instance = MyClass:new()
 
-## TODO
-- [X] Bind Variant types to Lua
-- [X] Bind utility functions to Lua
-- [X] Bind enums and constants to Lua
-- [X] Add support for getting global singletons from Lua
-- [X] Add support for getting classes from Lua
-- [X] Add optional support for `res://` relative paths in `require`, `loadfile` and `dofile`
-- [X] Add support for `await`ing signals
-- [X] Submit to Asset Library
-- [X] Lua ScriptLanguageExtension
-  + [X] Add support for property hints / usage flags (including export)
-  + [X] Add support for property getter / setter
-  + [ ] Add `export_*` functions mimicking GDScript annotations for better UX
-- [X] Support for building with LuaJIT
-- [X] Support WebAssembly platform
-- [X] Support Windows arm64 platform
-- [X] Support Linux arm64 platform
-- [ ] Support Linux arm32 and rv64 platform
-- [X] Use framework in iOS (possibly a xcframework supporting the iOS simulator as well)
-- [X] Automated unit tests
-- [X] Automated build and distribution
-- [X] Lua REPL editor plugin
+print(my_instance.my_value) -- 123
+my_instance.my_value = 200
+print(my_instance.my_value) -- 200
 
+my_instance:hello() -- prints "Hello"
 
-## Other projects for using Lua in Godot 4
-- https://github.com/WeaselGames/godot_luaAPI
-- https://github.com/perbone/luascript
+print(my_instance._secret) -- Nil
+print(my_instance._foo) -- Nil
+
+return 0
+```
+
+# Build
+Simply run `scons` in the root folder.
+
+For more informations visit: [Godot Engine - Compiling the plugin](https://docs.godotengine.org/en/stable/tutorials/scripting/cpp/gdextension_cpp_example.html#compiling-the-plugin).
+
+# Releases
+As in the original repository, builds are automated and can be found in the [Actions](https://github.com/MickTK/lua-gdextension/actions/workflows/build.yml) section.
+
+If you encounter any issues, you can follow these [instructions](https://github.com/gilzoide/lua-gdextension/discussions/15). Make sure to download the extension from this repository.

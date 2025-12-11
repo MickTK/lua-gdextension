@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="Lua GDExtension Test"
-run/main_scene="uid://d3pmpkdvfqjca"
-config/features=PackedStringArray("4.4", "GL Compatibility")
+run/main_scene="uid://b6tse06dyvq6x"
+config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="uid://cih6ia8rwpfa3"
 
 [editor_plugins]

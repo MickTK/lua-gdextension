@@ -85,17 +85,18 @@ sol::object evaluate_unary_operator(sol::this_state state, const sol::stack_obje
 sol::object variant__index(sol::this_state state, const Variant& variant, const sol::stack_object& key) {
 	bool is_valid;
 
-	if(variant.has_method(LUA_PROPERTY_LIST_NAME)) {
+	// Check if the class implements the property list method
+	// If not, return
+	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
 		Variant mutable_variant = variant;
 		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
 		if (mutable_variant.get_type() == godot::Variant::ARRAY) {
 			Array whitelist = mutable_variant;
 			if(!whitelist.has(to_variant(key))) return to_lua(state, Variant());
 		}
-		else {
-			return to_lua(state, Variant());
-		}
+		else return to_lua(state, Variant());
 	}
+	else return to_lua(state, Variant());
 
 	if (key.get_type() == sol::type::string) {
 		StringName string_name = key.as<StringName>();
@@ -115,6 +116,8 @@ void variant__newindex(sol::this_state state, Variant& variant, const sol::stack
 	bool is_valid;
 	Variant var_key = to_variant(key);
 
+	// Check if the class implements the property list method
+	// If not, return
 	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
 		Variant mutable_variant = variant;
 		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
@@ -122,10 +125,9 @@ void variant__newindex(sol::this_state state, Variant& variant, const sol::stack
 			Array whitelist = mutable_variant;
 			if(!whitelist.has(var_key)) return;
 		}
-		else {
-			return;
-		}
+		else return;
 	}
+	else return;
 
 	Variant var_value = to_variant(value);
 

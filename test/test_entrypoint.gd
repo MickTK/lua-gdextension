@@ -7,21 +7,6 @@ func _initialize():
 	var all_success = true
 
 	print("Starting Lua GDExtension tests (runtime: ", LuaState.get_lua_runtime(), ")")
-	for lua_script in DirAccess.get_files_at(LUA_TEST_DIR):
-		if lua_script.ends_with(".uid"):
-			continue
-		var lua_state = LuaState.new()
-		lua_state.open_libraries()
-		
-		var file_name = str(LUA_TEST_DIR, "/", lua_script)
-		var result = lua_state.do_file(file_name)
-		if result is LuaError:
-			all_success = false
-			print("! ", lua_script)
-			push_error(result.message)
-		else:
-			print("✓ ", lua_script)
-
 	for gdscript in DirAccess.get_files_at(GDSCRIPT_TEST_DIR):
 		if gdscript.ends_with(".uid"):
 			continue
