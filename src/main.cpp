@@ -33,13 +33,6 @@
 #include "LuaTable.hpp"
 #include "LuaThread.hpp"
 #include "LuaUserdata.hpp"
-#include "script-language/LuaCodeEdit.hpp"
-#include "script-language/LuaScript.hpp"
-#include "script-language/LuaScriptImportBehaviorManager.hpp"
-#include "script-language/LuaScriptLanguage.hpp"
-#include "script-language/LuaScriptResourceFormatLoader.hpp"
-#include "script-language/LuaScriptResourceFormatSaver.hpp"
-#include "script-language/LuaSyntaxHighlighter.hpp"
 #include "utils/project_settings.hpp"
 #include "utils/string_names.hpp"
 
@@ -81,30 +74,12 @@ static void initialize(ModuleInitializationLevel level) {
 
 	// Lua Script Language
 	register_project_settings();
-	ClassDB::register_abstract_class<LuaScript>();
-	ClassDB::register_abstract_class<LuaScriptLanguage>();
-	ClassDB::register_abstract_class<LuaScriptResourceFormatLoader>();
-	ClassDB::register_abstract_class<LuaScriptResourceFormatSaver>();
-	LuaScriptImportBehaviorManager::get_or_create_singleton();
-	LuaScriptLanguage::get_or_create_singleton();
-	LuaScriptResourceFormatLoader::register_in_godot();
-	LuaScriptResourceFormatSaver::register_in_godot();
-
-	// Lua code editing
-	ClassDB::register_class<LuaCodeEdit>();
-	ClassDB::register_class<LuaSyntaxHighlighter>();
 }
 
 static void deinitialize(ModuleInitializationLevel level) {
 	if (level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-
-	// Lua Script Language
-	LuaScriptResourceFormatSaver::unregister_in_godot();
-	LuaScriptResourceFormatLoader::unregister_in_godot();
-	LuaScriptLanguage::delete_singleton();
-	LuaScriptImportBehaviorManager::delete_singleton();
 
 	memdelete(string_names);
 }

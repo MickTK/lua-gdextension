@@ -61,32 +61,6 @@ void ClassMethodBind::register_usertype(sol::state_view& state) {
 }
 
 
-// LuaScriptInstanceMethodBind
-LuaScriptInstanceMethodBind::LuaScriptInstanceMethodBind(LuaScriptInstance *instance, const StringName& method_name)
-	: BaseMethodBind(method_name)
-	, instance_owner(instance->owner)
-{
-}
-
-Callable LuaScriptInstanceMethodBind::to_callable() const {
-	LuaScriptInstance *script_instance = LuaScriptInstance::attached_to_object(instance_owner);
-	ERR_FAIL_COND_V_MSG(script_instance == nullptr, Callable(), "Lua script instance is no longer valid");
-	return Callable(instance_owner, method_name);
-}
-
-sol::object LuaScriptInstanceMethodBind::call(sol::this_state state, const sol::stack_object& self, const sol::variadic_args& args) const {
-	LuaScriptInstance *script_instance = LuaScriptInstance::attached_to_object(instance_owner);
-	ERR_FAIL_COND_V_MSG(script_instance == nullptr, sol::nil, "Lua script instance is no longer valid");
-	ERR_FAIL_COND_V_MSG(self.pointer() != script_instance->data->get_table().pointer(), sol::nil, String("To call methods in Lua, use ':' instead of '.': `self:%s(...)`") % method_name);
-	Variant v = instance_owner;
-	return variant_call_string_name(state, v, method_name, args);
-}
-
-void LuaScriptInstanceMethodBind::register_usertype(sol::state_view& state) {
-	BaseMethodBind::register_subtype<LuaScriptInstanceMethodBind>(state, "LuaScriptInstanceMethodBind");
-}
-
-
 // VariantMethodBind
 VariantMethodBind::VariantMethodBind(const Variant& variant, const StringName& method_name)
 	: BaseMethodBind(method_name)

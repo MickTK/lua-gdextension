@@ -68,7 +68,7 @@ env.Tool("sol2", toolpath=["tools"])
 env.Tool("tree_sitter", toolpath=["tools"])
 
 # Build Lua GDExtension
-source_directories = [".", "luaopen", "utils", "script-language"]
+source_directories = [".", "luaopen", "utils"]
 sources = [
     Glob(f"{build_dir}/{directory}/*.cpp")
     for directory in source_directories

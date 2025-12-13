@@ -27,7 +27,6 @@
 #include "../LuaLightUserdata.hpp"
 #include "../LuaTable.hpp"
 #include "../LuaUserdata.hpp"
-#include "../script-language/LuaScriptInstance.hpp"
 #include "Class.hpp"
 #include "DictionaryIterator.hpp"
 #include "VariantArguments.hpp"
@@ -64,12 +63,7 @@ Variant to_variant(const sol::basic_object<ref_t>& object) {
 			return object.template as<double>();
 
 		case sol::type::table:
-			if (LuaScriptInstance *script_instance = LuaScriptInstance::find_instance(object.template as<sol::basic_table<ref_t>>())) {
-				return script_instance->owner;
-			}
-			else {
-				return LuaObject::wrap_object<LuaTable>(object);
-			}
+			return LuaObject::wrap_object<LuaTable>(object);
 
 		case sol::type::userdata:
 			if (object.template is<Variant>()) {
@@ -82,10 +76,6 @@ Variant to_variant(const sol::basic_object<ref_t>& object) {
 			}
 			else if (object.template is<VariantMethodBind>()) {
 				VariantMethodBind& method_bind = object.template as<VariantMethodBind&>();
-				return method_bind.to_callable();
-			}
-			else if (object.template is<LuaScriptInstanceMethodBind>()) {
-				LuaScriptInstanceMethodBind& method_bind = object.template as<LuaScriptInstanceMethodBind&>();
 				return method_bind.to_callable();
 			}
 			else {
@@ -201,12 +191,6 @@ sol::stack_object lua_push(lua_State *lua_state, const Variant& value) {
 			if (LuaObject *lua_obj = Object::cast_to<LuaObject>(value)) {
 				if (LuaState::find_lua_state(lua_state) == lua_obj->get_lua_state()) {
 					sol::stack::push(lua_state, lua_obj->get_lua_object());
-					break;
-				}
-			}
-			if (LuaScriptInstance *script_instance = LuaScriptInstance::attached_to_object(value)) {
-				if (LuaState::find_lua_state(lua_state) == script_instance->get_lua_state()) {
-					sol::stack::push(lua_state, script_instance->data->get_table());
 					break;
 				}
 			}

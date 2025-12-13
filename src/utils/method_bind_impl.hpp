@@ -24,7 +24,6 @@
 
 #include "Class.hpp"
 #include "VariantType.hpp"
-#include "../script-language/LuaScriptInstance.hpp"
 
 namespace luagdextension {
 
@@ -60,19 +59,6 @@ public:
 
 private:
 	Class cls;
-};
-
-
-class LuaScriptInstanceMethodBind : public BaseMethodBind {
-public:
-	LuaScriptInstanceMethodBind(LuaScriptInstance *instance, const StringName& method_name);
-
-	Callable to_callable() const;
-	sol::object call(sol::this_state state, const sol::stack_object& self, const sol::variadic_args& args) const override;
-	static void register_usertype(sol::state_view& state);
-
-protected:
-	Object *instance_owner;
 };
 
 
