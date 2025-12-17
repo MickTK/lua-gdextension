@@ -7,64 +7,7 @@ This project is a fork of [lua-gdextension](https://github.com/gilzoide/lua-gdex
 Currently, the extension still contains several legacy features from the original project, including the option to use Lua instead of GDScript, but these will be removed in future releases.
 
 # Getting started
-
-## Expose a GDScript class in Lua
-Any Variant can be exposed (also the built-ins classes) with the properties hidden by default.
-
-To expose the properties, the class shall implement a **static function** named **_lua_property_list**.
-
-```gdscript
-# GDScript exposed class example
-class_name MyClass
-
-static func _lua_property_list() -> Array[StringName]:
-  return [
-    "new", # exposes the constructor
-    "my_value",
-    "hello"
-  ]
-
-var _secret = "ciao"
-var my_value = 123
-func _foo() -> void: print("nope")
-func hello() -> void: print("Hello")
-```
-
-```gdscript
-# Initialize and run a sandbox environment
-
-var lua := LuaState.new()
-var lua_script: String = ... # see the example below
-
-func _ready() -> void:
-  lua.open_libraries(LuaState.GODOT_VARIANT) # required for any variant
-  lua.globals.clear() # removes built-in classes from the scope
-  lua.globals.print = func(msg: Variant) -> void: print(str(msg))
-  lua.globals.MyClass = MyClass
-
-  var result = lua.do_string(lua_script)
-  if result is LuaError:
-    printerr("Error in Lua code: ", result)
-  else:
-    print(result) # 0
-```
-
-```lua
--- Lua script example
-
-local my_instance = MyClass:new()
-
-print(my_instance.my_value) -- 123
-my_instance.my_value = 200
-print(my_instance.my_value) -- 200
-
-my_instance:hello() -- prints "Hello"
-
-print(my_instance._secret) -- Nil
-print(my_instance._foo) -- Nil
-
-return 0
-```
+Check the [wiki](https://github.com/MickTK/lua-gdextension/wiki) for more informations.
 
 # Build
 Simply run `scons` in the root folder.

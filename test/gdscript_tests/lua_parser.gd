@@ -60,5 +60,5 @@ func test_LuaASTQuery_example() -> bool:
 			assert(capture is LuaASTNode)
 			# Use LuaASTNode.get_source_code to get the content
 			var identifier = capture.get_source_code()
-			prints("Found identifier in Lua code:", identifier)
+			assert(["some_int", "some_global"].has(identifier))
 	return true

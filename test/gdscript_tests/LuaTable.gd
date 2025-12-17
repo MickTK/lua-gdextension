@@ -26,8 +26,6 @@ func test_get_value() -> bool:
 	var table = lua_state.do_string("""
 		local t = { 1, 2, 3, 4,
 			hello = "world",
-			some_vector2 = Vector2(),
-
 		}
 		t[t] = "self"
 		return t
@@ -38,7 +36,6 @@ func test_get_value() -> bool:
 	assert(table.get("hello") == "world")
 	assert(table.get("invalid") == null)
 	assert(table.get("invalid_with_defaul", "default") == "default")
-	assert(table.get("some_vector2") == Vector2())
 	assert(table.get(table) == "self")
 	return true
 
