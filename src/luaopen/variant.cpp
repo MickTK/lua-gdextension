@@ -90,8 +90,8 @@ sol::object variant__index(sol::this_state state, const Variant& variant, const 
 	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
 		Variant mutable_variant = variant;
 		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
-		if (mutable_variant.get_type() == godot::Variant::ARRAY) {
-			Array whitelist = mutable_variant;
+		if (mutable_variant.get_type() == godot::Variant::PACKED_STRING_ARRAY) {
+			PackedStringArray whitelist = mutable_variant;
 			if(!whitelist.has(to_variant(key))) return to_lua(state, Variant());
 		}
 		else return to_lua(state, Variant());
@@ -121,8 +121,8 @@ void variant__newindex(sol::this_state state, Variant& variant, const sol::stack
 	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
 		Variant mutable_variant = variant;
 		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
-		if (mutable_variant.get_type() == godot::Variant::ARRAY) {
-			Array whitelist = mutable_variant;
+		if (mutable_variant.get_type() == godot::Variant::PACKED_STRING_ARRAY) {
+			PackedStringArray whitelist = mutable_variant;
 			if(!whitelist.has(var_key)) return;
 		}
 		else return;

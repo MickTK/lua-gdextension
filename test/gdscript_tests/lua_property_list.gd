@@ -32,7 +32,7 @@ func test_restricted_class() -> bool:
 
 
 class UnrestrictedClass:
-	static func _lua_property_list() -> Array[StringName]:
+	static func _lua_property_list() -> PackedStringArray:
 		return [
 			"new",
 			"get",
@@ -48,7 +48,7 @@ class UnrestrictedClass:
 
 
 class RestrictedClass:
-	static func _lua_property_list() -> Array[StringName]: 
+	static func _lua_property_list() -> PackedStringArray: 
 		return ["new", "public_value", "public_method"]
 	var _private_value = 500
 	var public_value = 100
