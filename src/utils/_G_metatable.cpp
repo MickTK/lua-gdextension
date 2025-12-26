@@ -26,7 +26,6 @@
 #include "module_names.hpp"
 
 #include <godot_cpp/classes/engine.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
 using namespace godot;
@@ -35,7 +34,6 @@ namespace luagdextension {
 
 sol::object __index(sol::this_state state, sol::global_table _G, sol::stack_object key) {
 	static Engine *engine = Engine::get_singleton();
-	static ResourceLoader *resource_loader = ResourceLoader::get_singleton();
 
 	if (key.get_type() != sol::type::string) {
 		return sol::nil;
@@ -54,10 +52,6 @@ sol::object __index(sol::this_state state, sol::global_table _G, sol::stack_obje
 		if (ClassDB::class_exists(class_name)) {
 			Class cls(class_name);
 			return _G[key] = sol::make_object(state, cls);
-		}
-		else if (const char *global_class_path = registry.get<sol::table>("_GDEXTENSION_GLOBAL_CLASS_PATHS").get_or(key, (const char *) nullptr)) {
-			Ref<Resource> res = resource_loader->load(global_class_path);
-			return _G[key] = to_lua(state, res);
 		}
 	}
 	return sol::nil;

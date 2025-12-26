@@ -40,7 +40,6 @@ env.Command(
     [
         "src/generate_code.py",
         "src/luaopen/package_searcher.lua",
-        "src/script-language/globals.lua",
         "lib/godot-cpp/gdextension/extension_api.json",
         "lib/godot-cpp/gen/include/godot_cpp/variant/utility_functions.hpp",
     ],
