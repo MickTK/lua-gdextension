@@ -36,12 +36,11 @@
 #include "../utils/function_wrapper.hpp"
 #include "../utils/method_bind_impl.hpp"
 #include "../utils/string_names.hpp"
+#include "../utils/whitelist.hpp"
 
 using namespace godot;
 
 namespace luagdextension {
-
-#define LUA_PROPERTY_LIST_NAME "_lua_property_list"
 
 template<Variant::Operator VarOperator>
 sol::object evaluate_binary_operator(sol::this_state state, const sol::stack_object& a, const sol::stack_object& b) {
@@ -85,18 +84,7 @@ sol::object evaluate_unary_operator(sol::this_state state, const sol::stack_obje
 sol::object variant__index(sol::this_state state, const Variant& variant, const sol::stack_object& key) {
 	bool is_valid;
 
-	// Check if the class implements the property list method
-	// If not, return
-	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
-		Variant mutable_variant = variant;
-		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
-		if (mutable_variant.get_type() == godot::Variant::PACKED_STRING_ARRAY) {
-			PackedStringArray whitelist = mutable_variant;
-			if(!whitelist.has(to_variant(key))) return to_lua(state, Variant());
-		}
-		else return to_lua(state, Variant());
-	}
-	else return to_lua(state, Variant());
+	if (!filter__variant__whitelist(variant, key)) return to_lua(state, Variant()); // whitelist filter
 
 	if (key.get_type() == sol::type::string) {
 		StringName string_name = key.as<StringName>();
@@ -116,18 +104,7 @@ void variant__newindex(sol::this_state state, Variant& variant, const sol::stack
 	bool is_valid;
 	Variant var_key = to_variant(key);
 
-	// Check if the class implements the property list method
-	// If not, return
-	if (variant.has_method(LUA_PROPERTY_LIST_NAME)) {
-		Variant mutable_variant = variant;
-		mutable_variant = mutable_variant.call(LUA_PROPERTY_LIST_NAME);
-		if (mutable_variant.get_type() == godot::Variant::PACKED_STRING_ARRAY) {
-			PackedStringArray whitelist = mutable_variant;
-			if(!whitelist.has(var_key)) return;
-		}
-		else return;
-	}
-	else return;
+	if (!filter__variant__whitelist(variant, key)) return; // whitelist filter
 
 	Variant var_value = to_variant(value);
 
