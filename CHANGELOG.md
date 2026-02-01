@@ -1,11 +1,20 @@
 # Changelog
-## [Unreleased](https://github.com/gilzoide/lua-gdextension/compare/0.6.1...HEAD)
+## [Unreleased](https://github.com/gilzoide/lua-gdextension/compare/0.7.0...HEAD)
+
+
+## [0.7.0](https://github.com/gilzoide/lua-gdextension/releases/tag/0.7.0)
 ### Added
 - Support for setting up RPC method configurations in `LuaScript`s via a table or Dictionary called `rpc_config`.
   Use the new `rpc` global function that mimics GDScript's [@rpc annotation](https://docs.godotengine.org/en/stable/classes/class_%40gdscript.html#class-gdscript-annotation-rpc) for the values.
 - Support for accessing constants and enums from `VariantType`s, such as `Vector2.ZERO` and `Vector2.Axis`.
 - Support for power operator between Variants.
   Even if only `int` and `float` support them and most people won't ever use them as `Variant` values, add it for completion.
+- [Lua Language Server (LLS)](https://luals.github.io/) definition files + `.luarc.json` configuration file that helps with code completion in IDEs that support it
+- `export_*` functions for Lua Scripts mimicking GDScript's annotations, such as `export_range` and `export_file`
+- `GDCLASS` function that returns a table suitable for defining Godot Classes in LuaScripts.
+  The only thing special about it is that `pairs` iterates over its keys in order of insertion, so that its properties and methods are shown in order of definition in the Godot Editor.
+- Calling `get_method_list` on objects with a `LuaScript` attached now returns methods defined in script
+- Support for Android devices with 16KB page sizes
 
 ### Fixed
 - Increment reference count of returned `LuaState` from `LuaObject.get_lua_state`
